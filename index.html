@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎬 Movie Recommendation Engine</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <i class="fas fa-film"></i>
+                <h1>🎬 Movie Recommender</h1>
+            </div>
+            <button class="theme-toggle" id="themeToggle">
+                <i class="fas fa-moon"></i>
+            </button>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main">
+            <!-- Sidebar -->
+            <aside class="sidebar">
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="Search movies...">
+                    <button><i class="fas fa-search"></i></button>
+                </div>
+
+                <div class="filters">
+                    <h3>Filters</h3>
+                    <div class="genre-filter">
+                        <label><input type="checkbox" value="Bollywood" class="genre-checkbox"> 🎭 Bollywood</label>
+                        <label><input type="checkbox" value="Hollywood" class="genre-checkbox"> 🎥 Hollywood</label>
+                        <label><input type="checkbox" value="Action" class="genre-checkbox"> 🔫 Action</label>
+                        <label><input type="checkbox" value="Comedy" class="genre-checkbox"> 😂 Comedy</label>
+                        <label><input type="checkbox" value="Drama" class="genre-checkbox"> 💔 Drama</label>
+                        <label><input type="checkbox" value="Romance" class="genre-checkbox"> 🌹 Romance</label>
+                        <label><input type="checkbox" value="Thriller" class="genre-checkbox"> 🎪 Thriller</label>
+                        <label><input type="checkbox" value="Horror" class="genre-checkbox"> 🧟 Horror</label>
+                    </div>
+                </div>
+
+                <button class="btn-reset" onclick="resetFilters()">Reset Filters</button>
+
+                <div class="recommendations-box">
+                    <h3>🎯 Recommendations For You</h3>
+                    <div id="recommendationsContainer"></div>
+                </div>
+            </aside>
+
+            <!-- Movies Grid -->
+            <section class="movies-section">
+                <div class="section-header">
+                    <h2 id="sectionTitle">All Movies</h2>
+                    <select id="sortBy" onchange="sortMovies()">
+                        <option value="default">Sort By</option>
+                        <option value="rating">Rating (High to Low)</option>
+                        <option value="title">Title (A-Z)</option>
+                        <option value="year">Year (Newest)</option>
+                    </select>
+                </div>
+                <div class="movies-grid" id="moviesGrid"></div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Modal for Movie Details -->
+    <div id="movieModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <div class="modal-body">
+                <img id="modalPoster" src="" alt="poster">
+                <div class="modal-details">
+                    <h2 id="modalTitle"></h2>
+                    <p id="modalYear"></p>
+                    <p id="modalGenre"></p>
+                    <p id="modalDescription"></p>
+                    <div class="rating-container">
+                        <label>Rate this movie:</label>
+                        <div class="star-rating" id="starRating"></div>
+                    </div>
+                    <div class="modal-actions">
+                        <button onclick="addToWatchlist()" class="btn btn-primary">Add to Watchlist</button>
+                        <button onclick="closeModal()" class="btn btn-secondary">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="movies.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

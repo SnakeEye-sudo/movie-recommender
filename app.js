@@ -11,6 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
   renderMovies(allMovies);
   setupEventListeners();
   loadTheme();
+  startAutoUpdate();
 });
 
 // Setup event listeners
@@ -30,24 +31,26 @@ function setupEventListeners() {
   });
 }
 
-// Render movies to grid
+// Render movies to grid with BEAUTIFUL POSTERS
 function renderMovies(moviesToRender) {
   const moviesGrid = document.getElementById('moviesGrid');
   
   if (moviesToRender.length === 0) {
-    moviesGrid.innerHTML = '<div class="empty-state"><i class="fas fa-film" style="font-size: 48px; opacity: 0.3;"></i><p>No movies found</p></div>';
+    moviesGrid.innerHTML = '<div class="empty-state"><i class="fas fa-film"></i><p>No movies found</p></div>';
     return;
   }
   
   moviesGrid.innerHTML = moviesToRender.map(movie => `
     <div class="movie-card" onclick="openMovieModal(${movie.id})">
-      <div class="movie-poster">${movie.emoji}</div>
+      <div class="movie-poster" style="background: ${movie.poster};">  
+        <div style="font-size: 80px; opacity: 0.7;">${movie.emoji || '🎬'}</div>
+      </div>
       <div class="movie-info">
         <div class="movie-title">${movie.title}</div>
         <div class="movie-genre">${movie.genre} • ${movie.year}</div>
         <div class="movie-rating">⭐ ${movie.rating}/5</div>
         <div class="movie-footer">
-          <button onclick="event.stopPropagation(); rateMovie(${movie.id})" style="background: #ff6b6b; color: white;">Rate</button>
+          <button onclick="event.stopPropagation(); openMovieModal(${movie.id})" style="background: #ff6b6b; color: white;">Rate</button>
           <button onclick="event.stopPropagation(); addWatchlist(${movie.id})" style="background: #4ecdc4; color: white;">Save</button>
         </div>
       </div>
@@ -103,9 +106,19 @@ function openMovieModal(movieId) {
   if (!currentMovie) return;
   
   document.getElementById('modalTitle').textContent = currentMovie.title;
-  document.getElementById('modalYear').textContent = `📅 Year: ${currentMovie.year}`;
-  document.getElementById('modalGenre').textContent = `🎬 Genre: ${currentMovie.genre}`;
-  document.getElementById('modalDescription').textContent = `⭐ Rating: ${currentMovie.rating}/5 • Watch and rate this movie!`;
+  document.getElementById('modalYear').textContent = `📅 ${currentMovie.year}`;
+  document.getElementById('modalGenre').textContent = `🎬 ${currentMovie.genre}`;
+  document.getElementById('modalDescription').textContent = `A ${currentMovie.genre} film with rating ⭐ ${currentMovie.rating}/5`;
+  
+  // Set poster with gradient
+  const modalPoster = document.getElementById('modalPoster');
+  modalPoster.style.background = currentMovie.poster;
+  modalPoster.style.display = 'flex';
+  modalPoster.style.alignItems = 'center';
+  modalPoster.style.justifyContent = 'center';
+  modalPoster.textContent = currentMovie.emoji || '🎬';
+  modalPoster.style.fontSize = '120px';
+  modalPoster.style.opacity = '0.8';
   
   // Render star rating
   const starRating = document.getElementById('starRating');
@@ -155,7 +168,7 @@ function addWatchlist(movieId) {
   if (!watchlist.includes(movieId)) {
     watchlist.push(movieId);
     localStorage.setItem('watchlist', JSON.stringify(watchlist));
-    alert('Added to watchlist! 🍿');
+    alert('✅ Added to watchlist! 🍿');
   } else {
     alert('Already in watchlist!');
   }
@@ -165,7 +178,6 @@ function addWatchlist(movieId) {
 function getRecommendations() {
   const savedRatings = JSON.parse(localStorage.getItem('movieRatings'));
   
-  // If no ratings, return random movies
   if (Object.keys(savedRatings).length === 0) {
     return movies.sort(() => Math.random() - 0.5).slice(0, 3);
   }
@@ -179,7 +191,6 @@ function getRecommendations() {
     return movies.sort(() => Math.random() - 0.5).slice(0, 3);
   }
   
-  // Recommendation algorithm
   const recommendations = new Map();
   
   ratedMovies.forEach(ratedMovie => {
@@ -187,21 +198,9 @@ function getRecommendations() {
       if (Object.keys(savedRatings).includes(String(candidate.id))) return;
       
       let score = 0;
-      
-      // Same genre = +5 points
-      if (candidate.genre === ratedMovie.genre) {
-        score += 5;
-      }
-      
-      // Similar rating from algorithm = +3 points
-      if (Math.abs(candidate.rating - ratedMovie.rating) < 0.3) {
-        score += 3;
-      }
-      
-      // Same genre but different type = +2 points
-      if (candidate.genre !== ratedMovie.genre && candidate.rating >= 4) {
-        score += 2;
-      }
+      if (candidate.genre === ratedMovie.genre) score += 5;
+      if (Math.abs(candidate.rating - ratedMovie.rating) < 0.3) score += 3;
+      if (candidate.genre !== ratedMovie.genre && candidate.rating >= 4) score += 2;
       
       if (score > 0) {
         recommendations.set(candidate.id, (recommendations.get(candidate.id) || 0) + score);
@@ -221,7 +220,7 @@ function updateRecommendations() {
   const container = document.getElementById('recommendationsContainer');
   
   container.innerHTML = recommendations.map(movie => `
-    <div class="recommendation-item" onclick="openMovieModal(${movie.id})">
+    <div class="recommendation-item" onclick="openMovieModal(${movie.id})" style="background: ${movie.poster || '#f0f0f0'}; color: white; font-weight: bold;">
       ${movie.emoji} ${movie.title}
     </div>
   `).join('');
@@ -240,4 +239,26 @@ function loadTheme() {
     document.body.classList.add('dark-mode');
   }
   updateRecommendations();
+}
+
+// Auto-update system - checks for updates every hour
+function startAutoUpdate() {
+  // Check for movie updates
+  setInterval(() => {
+    const lastCheck = localStorage.getItem('lastMoviesCheck') || 0;
+    const now = new Date().getTime();
+    
+    // Update every 24 hours
+    if (now - lastCheck > 86400000) {
+      localStorage.setItem('lastMoviesCheck', now);
+      // Re-initialize recommendations cache
+      updateRecommendations();
+      console.log('✅ Movies cache updated!');
+    }
+  }, 3600000); // Check every hour
+}
+
+// Rate movie from card button
+function rateMovie(movieId) {
+  openMovieModal(movieId);
 }
